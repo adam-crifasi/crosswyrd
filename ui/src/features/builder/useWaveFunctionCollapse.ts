@@ -244,7 +244,9 @@ export default function useWaveFunctionCollapse(
     ): Promise<UpdateWaveReturnType> => {
       // Wrap updateWaveWithTileUpdates with a nice reactive-friendly API for
       // running an updated puzzle through WFC
+      console.log('ok');
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
+      console.log('nice');
       const previous = previousPuzzle.current;
       if (!previous)
         // previousPuzzle should be instantiated when this hook is first
@@ -252,6 +254,7 @@ export default function useWaveFunctionCollapse(
         // puzzle
         return null;
 
+      console.log('sure');
       const tileUpdates = _.flatMap(puzzle.tiles, (row, rowIndex) =>
         _.filter(
           _.map(row, (tile, columnIndex) => ({

@@ -65,8 +65,8 @@ function Tile({
     draggedWord && draggedWordLetterIndex >= 0 // User is hovering with a dragged word
       ? _.toUpper(draggedWord[draggedWordLetterIndex])
       : !_.includes(['empty', 'black'], tile.value)
-      ? _.toUpper(tile.value)
-      : '';
+        ? _.toUpper(tile.value)
+        : '';
   const element = wave && wave.elements[rowIndex][columnIndex];
   const tileNumber = tileNumbers[rowIndex][columnIndex];
   const showTileLetterOptions =
@@ -120,19 +120,19 @@ function Tile({
         ...(draggedWordLetterIndex >= 0
           ? { backgroundColor: colors.yellow[300] }
           : tile.value !== 'black' && element
-          ? {
-              backgroundColor:
-                tile.value === 'empty' && element.options.length >= 1
-                  ? `rgba(25, 118, 210, ${(3.3 - element.entropy) / 3.3})`
-                  : wrongLetter
-                  ? colors.red[200]
-                  : someWrongLetter && element.options.length === 0
-                  ? 'white'
-                  : element.options.length === 0
-                  ? colors.red[200]
-                  : 'white',
-            }
-          : {}),
+            ? {
+                backgroundColor:
+                  tile.value === 'empty' && element.options.length >= 1
+                    ? `rgba(25, 118, 210, ${(3.3 - element.entropy) / 3.3})`
+                    : wrongLetter
+                      ? colors.red[200]
+                      : someWrongLetter && element.options.length === 0
+                        ? 'white'
+                        : element.options.length === 0
+                          ? colors.red[200]
+                          : 'white',
+              }
+            : {}),
         cursor: wordLocationOptions || primarySelection ? 'pointer' : 'initial',
       }}
       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}

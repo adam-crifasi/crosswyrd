@@ -193,6 +193,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   // Update the wave with changes to the puzzle
   const prevPuzzleVersion = useRef(puzzle.version);
   useEffect(() => {
+    console.log('PUZZLE CHANGED');
     // If the puzzle's version hasn't changed, skip.
     if (prevPuzzleVersion.current === puzzle.version) return;
     // If auto-fill is running, then we defer to that to update our puzzle
@@ -200,6 +201,7 @@ export default function CrosswordBuilder({ grid }: Props) {
     // being.
     if (autoFillRunning) prevPuzzleVersion.current = puzzle.version;
     // Only try to update if the wave is outdated, and we are not auto-filling.
+    console.log('so close!');
     if (
       !dictionary ||
       !wave ||
@@ -208,9 +210,12 @@ export default function CrosswordBuilder({ grid }: Props) {
       WFCBusy
     )
       return;
+    console.log('do the thing', puzzle, wave);
     debouncedUpdateWave(() => {
+      console.log('OK DUDE');
       updateWave(dictionary, addWordsToDictionary, selectedTilesState).then(
         (result) => {
+          console.log('RESULT', result);
           if (!result) return;
           prevPuzzleVersion.current = result.puzzle.version;
           // This may get called a lot due to the nature of `debounce`, but this
