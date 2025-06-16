@@ -212,6 +212,7 @@ export default function ImportPuzzle({ onImport }: { onImport: () => void }) {
       <ListItemText primary="Import" />
       <VisuallyHiddenInput
         type="file"
+        accept=".puz"
         onChange={(event) => {
           if (!event.target.files || event.target.files?.length === 0) return;
           importPuzzle(event.target.files[0]);
