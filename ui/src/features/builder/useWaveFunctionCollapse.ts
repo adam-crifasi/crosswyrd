@@ -260,7 +260,7 @@ export default function useWaveFunctionCollapse(
             value: tile.value,
           })),
           ({ row, column, value }) =>
-            value !== previous.tiles[row][column].value
+            value !== previous.tiles[row]?.[column]?.value
         )
       );
       if (tileUpdates.length === 0)

@@ -28,6 +28,8 @@ import Navbar, { NAVBAR_HEIGHT } from './Navbar';
 import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
 import WelcomeDialog from './WelcomeDialog';
+import ExportPuzzle from './ExportPuzzle';
+import ImportPuzzle from './ImportPuzzle';
 
 function DrawerContents({
   handleClose,
@@ -48,6 +50,12 @@ function DrawerContents({
           </ListItemIcon>
           <ListItemText primary="New" />
         </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ImportPuzzle onImport={handleClose} />
+      </ListItem>
+      <ListItem disablePadding>
+        <ExportPuzzle onExport={handleClose} />
       </ListItem>
       <ListItem disablePadding>
         <ListItemButton
@@ -76,7 +84,7 @@ export interface GridWithVersionType extends GridType {
   version: string;
 }
 
-export default function CrossWyrd() {
+export default function Crosswyrd() {
   const defaultGridDialogOpen = useSelector(selectDefaultGridDialogOpen);
   const welcomeDialogState = useSelector(selectWelcomeDialogState);
   const [gridDialogState, setGridDialogState] = useState<{
