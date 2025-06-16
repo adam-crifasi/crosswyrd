@@ -202,6 +202,7 @@ export default function Navbar({
             variant="temporary"
             open={mobileOpen}
             onClose={handleDrawerToggle}
+            keepMounted
             sx={{
               ...(supportsDesktopSidebar
                 ? { display: { xs: 'block', lg: 'none' } }
