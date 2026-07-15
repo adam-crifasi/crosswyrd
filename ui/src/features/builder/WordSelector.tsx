@@ -102,36 +102,68 @@ function WordSelector({
       ),
     [selectedTilesState, puzzle]
   );
+  // The pattern of the selected word as typed so far (a letter where a tile
+  // is filled, '.' wherever it's empty or black), independent of anything
+  // the wave function collapse solver has narrowed down.
+  const tilesPattern: (LetterType | '.')[][] = useMemo(
+    () =>
+      _.map(_.range(optionsSet.length), (index) => {
+        const tileValue = selectedTiles[index].value;
+        if (tileValue === 'empty' || tileValue === 'black') return ['.'];
+        return [tileValue];
+      }),
+    [optionsSet.length, selectedTiles]
+  );
+
   const allPossibleWords = useMemo(
     () => findWordOptionsFromDictionary(dictionary, optionsSet),
     [dictionary, optionsSet]
   );
   const wordsFilteredByTiles = useMemo(
-    () =>
-      // Filter even before wave updates come in
-      findWordOptions(
-        allPossibleWords,
-        _.map(_.range(optionsSet.length), (index) => {
-          const tileValue = selectedTiles[index].value;
-          if (tileValue === 'empty' || tileValue === 'black') return ['.'];
-          return [tileValue];
-        })
-      ),
-    [allPossibleWords, optionsSet, selectedTiles]
+    // Filter even before wave updates come in
+    () => findWordOptions(allPossibleWords, tilesPattern),
+    [allPossibleWords, tilesPattern]
   );
+
+  // If the wave function collapse solver has narrowed the board down to no
+  // viable words here (e.g. because it can't find a way to fully solve the
+  // rest of the puzzle from this state), fall back to words that simply
+  // match the letters already typed in, unverified against the rest of the
+  // board.
+  const basicWordsFilteredByTiles = useMemo(
+    () =>
+      optionsSet.length === 0
+        ? []
+        : findWordOptionsFromDictionary(dictionary, tilesPattern),
+    [dictionary, tilesPattern, optionsSet.length]
+  );
+  const usingBasicFallback =
+    optionsSet.length > 0 &&
+    wordsFilteredByTiles.length === 0 &&
+    basicWordsFilteredByTiles.length > 0;
+
   const possibleWords = useMemo(() => {
+    const selectedWord = _.join(
+      _.times(optionsSet.length, (index) => selectedTiles[index].value),
+      ''
+    );
     const sortedWordsExceptSelectedWord = sortByWordScore(
       _.without(
-        wordsFilteredByTiles,
-        _.join(
-          _.times(optionsSet.length, (index) => selectedTiles[index].value),
-          ''
-        )
+        usingBasicFallback ? basicWordsFilteredByTiles : wordsFilteredByTiles,
+        selectedWord
       )
     );
     return sortedWordsExceptSelectedWord;
-  }, [wordsFilteredByTiles, selectedTiles, optionsSet]);
+  }, [
+    wordsFilteredByTiles,
+    basicWordsFilteredByTiles,
+    usingBasicFallback,
+    selectedTiles,
+    optionsSet,
+  ]);
 
+  // Viability checks rely on being able to solve the rest of the board, so
+  // they aren't meaningful for the basic fallback list--skip them there.
   const wordViabilities = useWordViabilities(
     dictionary,
     wave,
@@ -139,12 +171,20 @@ function WordSelector({
     possibleWords,
     selectedTilesState,
     autoFillRunning,
-    fillAssistActive
+    fillAssistActive && !usingBasicFallback
   );
 
   const mkHandleClickWord = (index: number) => () => {
     onEnter(possibleWords[index]);
   };
+
+  if (!fillAssistActive) {
+    return (
+      <div className="word-selector-container">
+        <span className="selector-comment">Fill Assist Disabled</span>
+      </div>
+    );
+  }
 
   return (
     <div className="word-selector-container">
@@ -158,6 +198,12 @@ function WordSelector({
             No words found to place here.
           </span>
         )
+      )}
+      {usingBasicFallback && (
+        <span className="selector-fallback-notice">
+          Unable to fill entire board - suggestions for the selected spaces
+          only
+        </span>
       )}
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List style={{ padding: 0 }}>
