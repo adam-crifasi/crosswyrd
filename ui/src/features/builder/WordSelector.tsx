@@ -115,52 +115,51 @@ function WordSelector({
     [optionsSet.length, selectedTiles]
   );
 
+  const selectedWord = useMemo(
+    () =>
+      _.join(
+        _.times(optionsSet.length, (index) => selectedTiles[index].value),
+        ''
+      ),
+    [selectedTiles, optionsSet.length]
+  );
+
   const allPossibleWords = useMemo(
     () => findWordOptionsFromDictionary(dictionary, optionsSet),
     [dictionary, optionsSet]
   );
   const wordsFilteredByTiles = useMemo(
     // Filter even before wave updates come in
-    () => findWordOptions(allPossibleWords, tilesPattern),
-    [allPossibleWords, tilesPattern]
+    () => _.without(findWordOptions(allPossibleWords, tilesPattern), selectedWord),
+    [allPossibleWords, tilesPattern, selectedWord]
   );
 
   // If the wave function collapse solver has narrowed the board down to no
-  // viable words here (e.g. because it can't find a way to fully solve the
-  // rest of the puzzle from this state), fall back to words that simply
+  // other viable words here (e.g. because it can't find a way to fully solve
+  // the rest of the puzzle from this state), fall back to words that simply
   // match the letters already typed in, unverified against the rest of the
-  // board.
+  // board. Only bother scanning the dictionary for this when we'd actually
+  // use the result.
   const basicWordsFilteredByTiles = useMemo(
     () =>
-      optionsSet.length === 0
+      optionsSet.length === 0 || wordsFilteredByTiles.length > 0
         ? []
-        : findWordOptionsFromDictionary(dictionary, tilesPattern),
-    [dictionary, tilesPattern, optionsSet.length]
+        : _.without(
+            findWordOptionsFromDictionary(dictionary, tilesPattern),
+            selectedWord
+          ),
+    [dictionary, tilesPattern, optionsSet.length, wordsFilteredByTiles, selectedWord]
   );
   const usingBasicFallback =
-    optionsSet.length > 0 &&
-    wordsFilteredByTiles.length === 0 &&
-    basicWordsFilteredByTiles.length > 0;
+    wordsFilteredByTiles.length === 0 && basicWordsFilteredByTiles.length > 0;
 
-  const possibleWords = useMemo(() => {
-    const selectedWord = _.join(
-      _.times(optionsSet.length, (index) => selectedTiles[index].value),
-      ''
-    );
-    const sortedWordsExceptSelectedWord = sortByWordScore(
-      _.without(
-        usingBasicFallback ? basicWordsFilteredByTiles : wordsFilteredByTiles,
-        selectedWord
-      )
-    );
-    return sortedWordsExceptSelectedWord;
-  }, [
-    wordsFilteredByTiles,
-    basicWordsFilteredByTiles,
-    usingBasicFallback,
-    selectedTiles,
-    optionsSet,
-  ]);
+  const possibleWords = useMemo(
+    () =>
+      sortByWordScore(
+        usingBasicFallback ? basicWordsFilteredByTiles : wordsFilteredByTiles
+      ),
+    [wordsFilteredByTiles, basicWordsFilteredByTiles, usingBasicFallback]
+  );
 
   // Viability checks rely on being able to solve the rest of the board, so
   // they aren't meaningful for the basic fallback list--skip them there.
